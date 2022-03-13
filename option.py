@@ -1,10 +1,9 @@
 from __future__ import annotations
-from typing import Optional
+from typing import Any, Optional
 from abc import ABC, abstractmethod, abstractproperty
 from uuid import UUID
 from datetime import datetime
 from entity import Entity
-from pprint import pformat
 
 class Option(Entity, ABC):
 
@@ -12,14 +11,13 @@ class Option(Entity, ABC):
 		super().__init__(identity, timestamp)
 
 	@abstractproperty
-	def entity(self) -> Entity:
+	def entity(self) -> Any:
 		pass
 
 	def __eq__(self, other: object) -> bool:
-		if self.__class__ is other.__class__:
-			return (self.entity() is other.entity()) and (super() is other)
-		else:
+		if not isinstance(other, Option):
 			return NotImplemented
+		return (self.entity is other.entity) and (super() is other)
 
 	def __ne__(self, other: object) -> bool:
 		if (result := self is other) is NotImplemented:
@@ -28,7 +26,7 @@ class Option(Entity, ABC):
 			return not result
 
 	def __hash__(self) -> int:
-		return hash((self.entity(), super().__hash__()))
+		return hash((self.entity, super().__hash__()))
 
 	@abstractmethod
 	def __repr__(self) -> str:

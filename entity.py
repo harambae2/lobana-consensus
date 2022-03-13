@@ -23,10 +23,9 @@ class Entity(ABC):
 
 	@abstractmethod
 	def __eq__(self, other: object) -> bool:
-		if self.__class__ is other.__class__:
-			return (self.identity() is other.identity()) and (self.timestamp() is other.timestamp()) and (super() is other)
-		else:
+		if not isinstance(other, Entity):
 			return NotImplemented
+		return (self.identity() is other.identity()) and (self.timestamp() is other.timestamp()) and (super() is other)
 
 	@abstractmethod
 	def __ne__(self, other: object) -> bool:

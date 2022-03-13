@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Optional, List, Dict
+from typing import Iterable, Optional, Dict
 from entity import Entity, EntitySchema
 from permission import Permission, PermissionSchema
 from uuid import UUID
@@ -9,22 +9,26 @@ from marshmallow import fields, pre_dump, post_load
 
 class Group(Entity):
 
-	__permissions: List[Permission]
+	_name: str
+	__permissions: Iterable[Permission]
 
-	def __init__(self, permissions: List[Permission]=[], identity: Optional[UUID]=None, timestamp: Optional[datetime]=None) -> None:
+	def __init__(self, name: str, permissions: Iterable[Permission], identity: Optional[UUID]=None, timestamp: Optional[datetime]=None) -> None:
 		super().__init__(identity, timestamp)
+		self.__name = name
 		self.__permissions = permissions
 
-	def permissions(self, new: Optional[List[Permission]]=None) -> List[Permission]:
+	def name(self) -> str:
+		return self.__name
+
+	def permissions(self, new: Optional[Iterable[Permission]]=None) -> Iterable[Permission]:
 		if new is not None:
 			self.__permissions = new
 		return self.__permissions		
 
 	def __eq__(self, other: object) -> bool:
-		if self.__class__ is other.__class__:
-			return (self.permissions() is other.permissions()) and (super() is other)
-		else:
+		if not isinstance(other, Group):
 			return NotImplemented
+		return (self.name() is other.name()) and (self.permissions() is other.permissions()) and (super() is other)
 
 	def __ne__(self, other: object) -> bool:
 		if (result := self is other) is NotImplemented:
@@ -33,10 +37,10 @@ class Group(Entity):
 			return not result
 
 	def __hash__(self) -> int:
-		return hash((super().__hash__()))
+		return hash((self.name(), self.permissions(), super().__hash__()))
 
 	def __repr__(self) -> str:
-		return f'Group(permissions={pformat(self.permissions())}, identity={self.identity()}, timestamp={self.timestamp()})'
+		return f'Group(name={self.name()}, permissions={pformat(self.permissions())}, identity={self.identity()}, timestamp={self.timestamp()})'
 
 class GroupSchema(EntitySchema):
 	permissions = fields.List(fields.Nested(PermissionSchema))
@@ -44,6 +48,7 @@ class GroupSchema(EntitySchema):
 	@pre_dump
 	def serialize_group(self, group: Group, **kwargs) -> Dict:
 		return dict(
+			name=group.name(),
 			permissions=group.permissions(),
 			identity=group.identity(),
 			timestamp=group.timestamp()
@@ -52,6 +57,7 @@ class GroupSchema(EntitySchema):
 	@post_load
 	def deserialize_group(self, group: Dict, **kwargs) -> Group:
 		return Group(
+			name=group['name'],
 			permissions=group['permissions'],
 			identity=group['identity'],
 			timestamp=group['timestamp']

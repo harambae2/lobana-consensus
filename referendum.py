@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Optional, List, Dict
+from typing import Optional, Dict
 from uuid import UUID
 from datetime import datetime
 from entity import EntitySchema
@@ -14,7 +14,7 @@ class Referendum(Poll):
 
 	__question: Question
 
-	def __init__(self, question: Question, answers: List[Answer], ballots: List[Ballot], identity: Optional[UUID]=None, timestamp: Optional[datetime]=None) -> None:
+	def __init__(self, question: Question, answers: Iterable[Answer], ballots: Sequence[Ballot], identity: Optional[UUID]=None, timestamp: Optional[datetime]=None) -> None:
 		super().__init__(answers, ballots, identity, timestamp)
 		self.__question = question
 

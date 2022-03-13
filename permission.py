@@ -27,10 +27,9 @@ class Permission(Entity):
 		return self.__execute
 
 	def __eq__(self, other: object) -> bool:
-		if self.__class__ is other.__class__:
-			return (self.read() is other.read()) and (self.write() is other.write()) and (self.execute() is other.execute()) and (super() is other)
-		else:
+		if not isinstance(other, Permission):
 			return NotImplemented
+		return (self.read() is other.read()) and (self.write() is other.write()) and (self.execute() is other.execute()) and (super() is other)
 
 	def __ne__(self, other: object) -> bool:
 		if (result := self is other) is NotImplemented:

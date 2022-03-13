@@ -1,4 +1,6 @@
 from __future__ import annotations
+from permission import Permission
+from group import Group
 from user import User
 from candidate import Candidate, CandidateOptionSchema
 from ballot import Ballot
@@ -9,16 +11,18 @@ from scoring import CandidateScoringSchema
 
 if __name__ == '__main__':
 
-	u0 = User('User 0')
-	u1 = User('User 1')
-	u2 = User('User 2')
-	u3 = User('User 3')
-	u4 = User('User 4')
-	u5 = User('User 5')
-	u6 = User('User 6')
-	u7 = User('User 7')
-	u8 = User('User 8')
-	u9 = User('User 9')
+	g = Group('Group 0', [Permission(read=False, write=False, execute=False)])
+
+	u0 = User('User 0', [g])
+	u1 = User('User 1', [g])
+	u2 = User('User 2', [g])
+	u3 = User('User 3', [g])
+	u4 = User('User 4', [g])
+	u5 = User('User 5', [g])
+	u6 = User('User 6', [g])
+	u7 = User('User 7', [g])
+	u8 = User('User 8', [g])
+	u9 = User('User 9', [g])
 
 	print(users := [u0, u1, u2, u3, u4, u5, u6, u7, u8, u9])
 	print()
@@ -41,7 +45,7 @@ if __name__ == '__main__':
 	print(ballots := [b0, b1, b2, b3])
 	print()	
 	
-	print(election := Election(Group(), candidates, ballots))
+	print(election := Election(g, candidates, ballots))
 	print()
 
 	print(count := election.count())

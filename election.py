@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Optional, List, Dict
+from typing import Optional, Dict, Iterable, Sequence
 from uuid import UUID
 from datetime import datetime
 from entity import EntitySchema
@@ -14,7 +14,7 @@ class Election(Poll):
 
 	__group: Group
 
-	def __init__(self, group: Group, candidates: List[Candidate], ballots: List[Ballot], identity: Optional[UUID]=None, timestamp: Optional[datetime]=None) -> None:
+	def __init__(self, group: Group, candidates: Iterable[Candidate], ballots: Sequence[Ballot], identity: Optional[UUID]=None, timestamp: Optional[datetime]=None) -> None:
 		super().__init__(candidates, ballots, identity, timestamp)
 		self.__group = group
 
@@ -44,7 +44,7 @@ class ElectionPollSchema(EntitySchema):
 	def deserialize_election(self, election: Dict, **kwargs) -> Election:
 		return Election(
 			group=election['group'],
-			options=election['options'],
+			candidates=election['options'],
 			ballots=election['ballots'],
 			identity=election['identity'],
 			timestamp=election['timestamp']

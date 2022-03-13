@@ -1,8 +1,5 @@
 from __future__ import annotations
-from typing import Tuple, Dict, Optional
-from uuid import UUID
-from datetime import datetime
-from entity import Entity, EntitySchema
+from typing import Tuple, Dict
 from option import Option
 from candidate import CandidateOptionSchema
 from answer import AnswerOptionSchema
@@ -11,22 +8,20 @@ from itertools import chain
 from pprint import pformat
 from marshmallow import Schema, fields, pre_dump, post_load
 
-class Scoring(Entity):
+class Scoring:
 
 	__scores: Dict[Option, float]
 
-	def __init__(self, scores: Dict[Option, float], identity: Optional[UUID]=None, timestamp: Optional[datetime]=None) -> None:
-		super().__init__(identity, timestamp)
+	def __init__(self, scores: Dict[Option, float]) -> None:
 		self.__scores = scores
 
 	def scores(self) -> Dict[Option, float]:
 		return self.__scores
 
 	def __eq__(self, other: object) -> bool:
-		if self.__class__ is other.__class__:
-			return (self.scores is other.scores) and (super() is other)
-		else:
+		if not isinstance(other, Scoring):
 			return NotImplemented
+		return (self.scores is other.scores)
 
 	def __ne__(self, other: object) -> bool:
 		if (result := self is other) is NotImplemented:
@@ -35,20 +30,10 @@ class Scoring(Entity):
 			return not result
 
 	def __hash__(self) -> int:
-		return hash((self.scores(), super().__hash__()))
+		return hash(self.scores())
 
 	def __repr__(self) -> str:
-		return f'Scoring(scores={pformat(self.scores())}, identity={self.identity()}, timestamp={self.timestamp()})'
-
-	# def __add__(self, other: Scoring) -> Scoring:
-	# 	for option, score in other.scores().items():
-	# 		self.__scores[option] += score
-	# 	return self
-
-	# def __sub__(self, other: Scoring) -> Scoring:
-	# 	for option, score in other.scores().items():
-	# 		self.__scores[option] -= score
-	# 	return self
+		return f'Scoring(scores={pformat(self.scores())})'
 
 	def __iadd__(self, other: Scoring) -> Scoring:
 		for option, score in other.scores().items():
@@ -73,7 +58,7 @@ class Scoring(Entity):
 
 	def normalize(self) -> Scoring:
 		normalized: Dict[Option, float] = {}
-		total = sum(score for score in self.scores().values())
+		total: float = sum(score for score in self.scores().values())
 
 		for option, score in self.scores().items():
 			normalized[option] = score/total
@@ -108,22 +93,18 @@ class CandidateScoreSchema(ScoreSchema):
 class AnswerScoreSchema(ScoreSchema):
 	option = fields.Nested(AnswerOptionSchema)
 
-class ScoringSchema(EntitySchema):
+class ScoringSchema(Schema):
 
 	@pre_dump
 	def serialize_scoring(self, scoring: Scoring, **kwargs) -> Dict:
 		return dict(
 			scores=[(option, score) for option, score in scoring.scores().items()],
-			identity=scoring.identity(),
-			timestamp=scoring.timestamp()
 		)
 
 	@post_load
 	def deserialize_scoring(self, scoring: Dict, **kwargs) -> Scoring:
 		return Scoring(
 			scores={option: score for option, score in scoring['scores']},
-			identity=scoring['identity'],
-			timestamp=scoring['timestamp']
 		)
 
 class CandidateScoringSchema(ScoringSchema):

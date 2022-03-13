@@ -25,10 +25,9 @@ class Ballot(Entity):
 		return self.__disagreement
 
 	def __eq__(self, other: object) -> bool:
-		if self.__class__ is other.__class__:
-			return (self.agreement() is other.agreement()) and (self.disagreement() is other.disagreement()) and (super() is other)
-		else:
+		if not isinstance(other, Ballot):
 			return NotImplemented
+		return (self.agreement() is other.agreement()) and (self.disagreement() is other.disagreement()) and (super() is other)
 
 	def __ne__(self, other: object) -> bool:
 		if (result := self is other) is NotImplemented:
@@ -43,9 +42,9 @@ class Ballot(Entity):
 		return f'Ballot(agreement={pformat(self.agreement())}, disagreement={pformat(self.disagreement())}, identity={self.identity()}, timestamp={self.timestamp()})'
 
 	def normalize(self) -> Tuple[Scoring, Scoring]:
-		merged_ranking = Ranking.merge(self.agreement(), self.disagreement())
-		merged_scoring = Scoring.score(merged_ranking)
-		normalized_scoring = merged_scoring.normalize()
+		merged_ranking: Ranking = Ranking.merge(self.agreement(), self.disagreement())
+		merged_scoring: Scoring = Scoring.score(merged_ranking)
+		normalized_scoring: Scoring = merged_scoring.normalize()
 		return normalized_scoring.split(self.agreement(), self.disagreement())
 
 class CandidateBallotSchema(EntitySchema):
