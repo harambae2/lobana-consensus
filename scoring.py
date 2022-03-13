@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Tuple, Dict
+from typing import Tuple, Dict, Optional
 from option import Option
 from candidate import CandidateOptionSchema
 from answer import AnswerOptionSchema
@@ -15,7 +15,9 @@ class Scoring:
 	def __init__(self, scores: Dict[Option, float]) -> None:
 		self.__scores = scores
 
-	def scores(self) -> Dict[Option, float]:
+	def scores(self, new: Optional[Dict[Option, float]]=None) -> Dict[Option, float]:
+		if new is not None:
+			self.__scores == new
 		return self.__scores
 
 	def __eq__(self, other: object) -> bool:

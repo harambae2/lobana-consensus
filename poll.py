@@ -59,16 +59,15 @@ class Poll(Entity, ABC):
 
 		return scores
 
-	def consensus(self) -> List[Option]:
+	def consensus(self) -> Scoring:
 		probability: float = 0
-		selected: List[Option] = []
-		count: Scoring = self.count()
-		scores: OrderedDict = OrderedDict(count.scores())
+		selected: Scoring = Scoring({})
+		scores: OrderedDict = OrderedDict(self.count().scores())
 
 		for option in reversed(scores):
 			if probability <= 1:
 				if (average := scores[option] / len(self.ballots())) > 0:
-					selected.append(option)
+					selected.scores({option: average, **selected.scores()})
 					probability += average
 			else:
 				break

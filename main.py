@@ -57,7 +57,7 @@ if __name__ == '__main__':
 	print(CandidateScoringSchema().dumps(count))
 	print()
 
-	print(CandidateOptionSchema(many=True).dumps(consensus))
+	print(CandidateScoringSchema().dumps(consensus))
 	print()
 
 	print(ElectionPollSchema().dumps(election))
