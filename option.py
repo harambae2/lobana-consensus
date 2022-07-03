@@ -1,32 +1,28 @@
 from __future__ import annotations
-from typing import Any, Optional
-from abc import ABC, abstractmethod, abstractproperty
-from uuid import UUID
-from datetime import datetime
+from abc import ABC, abstractmethod
 from entity import Entity
 
 class Option(Entity, ABC):
 
-	def __init__(self, identity: Optional[UUID]=None, timestamp: Optional[datetime]=None) -> None:
-		super().__init__(identity, timestamp)
-
-	@abstractproperty
-	def entity(self) -> Any:
+	@abstractmethod
+	def __init__(self: Option) -> None:
 		pass
 
-	def __eq__(self, other: object) -> bool:
+	@abstractmethod
+	def __eq__(self: Option, other: object) -> bool:
 		if not isinstance(other, Option):
 			return NotImplemented
-		return (self.entity is other.entity) and (super() is other)
-
-	def __ne__(self, other: object) -> bool:
+		return super().__eq__(other)
+	
+	@abstractmethod
+	def __ne__(self: Option, other: object) -> bool:
 		if (result := self is other) is NotImplemented:
-			return NotImplemented
-		else:
-			return not result
+			return result
+		return not result
 
-	def __hash__(self) -> int:
-		return hash((self.entity, super().__hash__()))
+	@abstractmethod
+	def __hash__(self: Option) -> int:
+		return super().__hash__()
 
 	@abstractmethod
 	def __repr__(self) -> str:

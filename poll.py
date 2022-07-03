@@ -1,58 +1,57 @@
 from __future__ import annotations
-from typing import Iterable, List, Optional, Sequence
-from collections import OrderedDict
-from abc import ABC, abstractmethod, abstractproperty
-from uuid import UUID
-from datetime import datetime
+from typing import Iterable, Sequence
+from abc import ABC, abstractmethod
 from entity import Entity
-from ballot import Ballot
+from group import Group
 from option import Option
+from ballot import Ballot
 from scoring import Scoring
+from collections import OrderedDict
 
 class Poll(Entity, ABC):
 
+	__voters: Iterable[Group]
 	__options: Iterable[Option]
-	__ballots: Sequence[Ballot]
+	ballots: Sequence[Ballot]
 
-	def __init__(self, options: Iterable[Option], ballots: Sequence[Ballot], identity: Optional[UUID]=None, timestamp: Optional[datetime]=None) -> None:
-		super().__init__(identity, timestamp)
+	def __init__(self: Poll, voters: Iterable[Group], options: Iterable[Option]) -> None:
+		super().__init__()
+		self.__voters = voters
 		self.__options = options
-		self.__ballots = ballots
+		self.ballots = []
 
-	def options(self) -> Iterable[Option]:
+	@property
+	def voters(self: Poll) -> Iterable[Group]:
+		return self.__voters
+
+	@property
+	def options(self: Poll) -> Iterable[Option]:
 		return self.__options
 
-	def ballots(self, new: Optional[Sequence[Ballot]]=None) -> Sequence[Ballot]:
-		if new is not None:
-			self.__ballots = new
-		return self.__ballots
-	
-	@abstractproperty
-	def entity(self) -> Entity:
-		pass
-
+	@abstractmethod
 	def __eq__(self, other: object) -> bool:
 		if not isinstance(other, Poll):
 			return NotImplemented
-		return (self.entity is other.entity) and (self.options() is other.options()) and (self.ballots() is other.ballots()) and (super() is other)
+		return (super().__eq__(other)) and (self.voters is other.voters) and (self.options is other.options) and (self.ballots is other.ballots)
 
+	@abstractmethod
 	def __ne__(self, other: object) -> bool:
 		if (result := self is other) is NotImplemented:
-			return NotImplemented
-		else:
-			return not result
-			
-	def __hash__(self) -> int:
-		return hash((self.entity, self.options(), self.ballots(), super().__hash__()))
+			return result
+		return not result
+
+	@abstractmethod
+	def __hash__(self: Poll) -> int:
+		return hash((super().__hash__()))
 
 	@abstractmethod
 	def __repr__(self) -> str:
 		pass
 
 	def count(self) -> Scoring:
-		scores: Scoring = Scoring({option : 0 for option in self.options()})
+		scores: Scoring = Scoring(scores={option : 0 for option in self.options})
 		
-		for ballot in self.ballots():
+		for ballot in self.ballots:
 			agreement_scores, disagreement_scores = ballot.normalize()
 			scores += agreement_scores
 			scores -= disagreement_scores
@@ -61,13 +60,13 @@ class Poll(Entity, ABC):
 
 	def consensus(self) -> Scoring:
 		probability: float = 0
-		selected: Scoring = Scoring({})
-		scores: OrderedDict = OrderedDict(self.count().scores())
+		selected: Scoring = Scoring(scores={})
+		scores: OrderedDict = OrderedDict(self.count().scores)
 
 		for option in reversed(scores):
 			if probability <= 1:
-				if (average := scores[option] / len(self.ballots())) > 0:
-					selected.scores({option: average, **selected.scores()})
+				if (average := scores[option] / len(self.ballots)) > 0:
+					selected.scores[option] = average
 					probability += average
 			else:
 				break

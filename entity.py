@@ -1,47 +1,36 @@
 from __future__ import annotations
-from abc import ABC, abstractmethod
-from typing import Optional
 from uuid import UUID, uuid4
 from datetime import datetime
-from marshmallow import Schema, fields
 
-class Entity(ABC):
+class Entity(object):
 
-	__identity: UUID
-	__timestamp: datetime
+	__identity: UUID = uuid4()
+	__timestamp: datetime = datetime.now()
 
-	def __init__(self, identity: Optional[UUID]=None, timestamp: Optional[datetime]=None) -> None:
-		super().__init__()
-		self.__identity = uuid4() if identity is None else identity
-		self.__timestamp = datetime.now() if timestamp is None else timestamp
+	def __init__(self: Entity) -> None:
+		self.__identity = uuid4()
+		self.__timestamp = datetime.now()
 
-	def identity(self):
+	@property
+	def identity(self: Entity) -> UUID:
 		return self.__identity
 
-	def timestamp(self):
+	@property
+	def timestamp(self: Entity) -> datetime:
 		return self.__timestamp
-
-	@abstractmethod
-	def __eq__(self, other: object) -> bool:
+	
+	def __eq__(self: Entity, other: object) -> bool:
 		if not isinstance(other, Entity):
 			return NotImplemented
-		return (self.identity() is other.identity()) and (self.timestamp() is other.timestamp()) and (super() is other)
+		return (self.identity is other.identity) and (self.timestamp is other.timestamp)
 
-	@abstractmethod
-	def __ne__(self, other: object) -> bool:
+	def __ne__(self: Entity, other: object) -> bool:
 		if (result := self is other) is NotImplemented:
-			return NotImplemented
-		else:
-			return not result
+			return result
+		return not result
 
-	@abstractmethod
-	def __hash__(self) -> int:
-		return hash((self.identity(), self.timestamp(), super().__hash__()))
+	def __hash__(self: Entity) -> int:
+		return hash((super().__hash__(), self.identity, self.timestamp))
 
-	@abstractmethod
-	def __repr__(self) -> str:
-		pass
-
-class EntitySchema(Schema):
-	identity = fields.UUID()
-	timestamp = fields.DateTime()
+	def __repr__(self: Entity) -> str:
+		return f"Entity(identity={repr(self.identity)}, timestamp={repr(self.timestamp)})"

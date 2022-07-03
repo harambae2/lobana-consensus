@@ -1,42 +1,30 @@
 from __future__ import annotations
-from typing import Optional, Dict
-from uuid import UUID
-from datetime import datetime
 from option import Option
-from entity import EntitySchema
-from user import User, UserSchema
-from pprint import pformat
-from marshmallow import fields, pre_dump, post_load
+from user import User
 
 class Candidate(Option):
 
 	__user: User
 
-	def __init__(self, user: User, identity: Optional[UUID]=None, timestamp: Optional[datetime]=None) -> None:
-		super().__init__(identity, timestamp)
+	def __init__(self: Candidate, user: User) -> None:
 		self.__user = user
 
-	def entity(self) -> User:
+	@property
+	def user(self: Candidate) -> User:
 		return self.__user
+
+	def __eq__(self: Candidate, other: object) -> bool:
+		if not isinstance(other, Candidate):
+			return NotImplemented
+		return (super().__eq__(other)) and (self.user is other.user)
 	
-	def __repr__(self) -> str:
-		return f'Candidate(user={pformat(self.entity())}, identity={self.identity()}, timestamp={self.timestamp()})'
+	def __ne__(self: Candidate, other: object) -> bool:
+		if (result := self is other) is NotImplemented:
+			return result
+		return not result
 
-class CandidateOptionSchema(EntitySchema):
-	user = fields.Nested(UserSchema)
-
-	@pre_dump
-	def serialize_option(self, candidate: Candidate, **kwargs) -> Dict:
-		return dict(
-			user=candidate.entity(),
-			identity=candidate.identity(),
-			timestamp=candidate.timestamp()
-		)
-
-	@post_load
-	def deserialize_option(self, candidate: Dict, **kwargs) -> Candidate:
-		return Candidate(
-			user=candidate['user'],
-			identity=candidate['identity'],
-			timestamp=candidate['timestamp']
-		)
+	def __hash__(self: Candidate) -> int:
+		return hash((super().__hash__(), self.user))
+	
+	def __repr__(self: Candidate) -> str:
+		return f'Candidate(user={repr(self.user)})'

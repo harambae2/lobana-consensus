@@ -1,9 +1,5 @@
 from __future__ import annotations
-from datetime import datetime
-from typing import Optional, Dict
-from entity import Entity, EntitySchema
-from uuid import UUID
-from marshmallow import fields, pre_dump, post_load
+from entity import Entity
 
 class Permission(Entity):
 
@@ -11,72 +7,36 @@ class Permission(Entity):
 	__write: bool
 	__execute: bool
 
-	def __init__(self, read: bool, write: bool, execute: bool, identity: Optional[UUID]=None, timestamp: Optional[datetime]=None) -> None:
-		super().__init__(identity, timestamp)
+	def __init__(self: Permission, read: bool, write: bool, execute: bool) -> None:
+		super().__init__()
 		self.__read = read
 		self.__write = write
 		self.__execute = execute
 
-	def read(self) -> bool:
+	@property
+	def read(self: Permission) -> bool:
 		return self.__read
 
-	def write(self) -> bool:
+	@property
+	def write(self: Permission) -> bool:
 		return self.__write
 
-	def execute(self) -> bool:
+	@property
+	def execute(self: Permission) -> bool:
 		return self.__execute
 
-	def __eq__(self, other: object) -> bool:
-		if not isinstance(other, Permission):
+	def __eq__(self: Entity, other: object) -> bool:
+		if not isinstance(other, Entity):
 			return NotImplemented
-		return (self.read() is other.read()) and (self.write() is other.write()) and (self.execute() is other.execute()) and (super() is other)
+		return (super().__eq__(other)) and (self.read is other.read) and (self.write is other.write) and (self.execute is other.execute)
 
-	def __ne__(self, other: object) -> bool:
+	def __ne__(self: Entity, other: object) -> bool:
 		if (result := self is other) is NotImplemented:
-			return NotImplemented
-		else:
-			return not result
+			return result
+		return not result
 
-	def __hash__(self) -> int:
-		return hash((self.read(), self.write(), self.execute(), super().__hash__()))
+	def __hash__(self: Entity) -> int:
+		return hash((super().__hash__(), self.read, self.write, self.execute))
 
-	def __repr__(self) -> str:
-		return f'Permission(read={self.read()}, write={self.write()}, execute={self.execute()}, identity={self.identity()}, timestamp={self.timestamp()})'
-
-class PermissionSchema(EntitySchema):
-	read = fields.Boolean()
-	write = fields.Boolean()
-	execute = fields.Boolean()
-
-	@pre_dump
-	def serialize_permission(self, permission: Permission, **kwargs) -> Dict:
-		return dict(
-			read=permission.read(),
-			write=permission.write(),
-			execute=permission.execute(),
-			identity=permission.identity(),
-			timestamp=permission.timestamp()
-		)
-
-	@post_load
-	def deserialize_permission(self, permission: Dict, **kwargs) -> Permission:
-		return Permission(
-			read=permission['read'],
-			write=permission['write'],
-			execute=permission['execute'],
-			identity=permission['identity'],
-			timestamp=permission['timestamp']
-		)
-
-
-# class Votable(Permission(read=True, write=True, execute=True)):
-# 	pass
-
-# class NotVotable(Permission(read=True, write=False, execute=False)):
-# 	pass
-
-# class Answerable(Permission(read=True, write=True, execute=True)):
-# 	pass
-
-# class NotAnswerable(Permission(read=True, write=False, execute=False)):
-# 	pass
+	def __repr__(self: Entity) -> str:
+		return f"Permission(entity={super().__repr__()}, read={repr(self.read)}, write={repr(self.write)}, execute={repr(self.execute)})"
